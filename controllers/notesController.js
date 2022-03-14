@@ -5,36 +5,28 @@ const { uuid } = require("uuidv4");
 
 const getAllNotes =
   ("/notes",
-  (req, res) => {
-    fs.readFile("./notes.json", (err, jsonString) => {
-      if (err) {
-        throw err;
-      } else {
-        try {
-          const data = JSON.parse(jsonString);
-          res.json(data);
-          console.log(data);
-        } catch (error) {
-          console.log(error);
-        }
-      }
-    });
+  async (req, res) => {
+    try {
+      const data = await fs.readFileSync("./notes.json");
+      const json = JSON.parse(data);
+      res.json(json);
+    } catch (error) {
+      console.error(error);
+    }
   });
 
 // Add new note
 
 const createNewNote =
   ("/notes",
-  (req, res) => {
+  async (req, res) => {
     const note = {
       id: uuid(),
       note: req.body.note,
     };
 
-    fs.readFile("./notes.json", (err, data) => {
-      if (err) {
-        throw err;
-      }
+    const data = await fs.readFileSync("./notes.json");
+    try {
       const json = JSON.parse(data);
       json.push(note);
       fs.writeFile("./notes.json", JSON.stringify(json, null, 2), (err) => {
@@ -42,39 +34,38 @@ const createNewNote =
           throw err;
         }
       });
-      res.json({ message: "Note added sucesfully" });
-    });
+      res.json({ message: "Note added succesfully" });
+    } catch (error) {
+      console.error(error);
+    }
   });
 
 // Delete note
 
-const deleteNote = (req, res) => {
-  fs.readFile("./notes.json", (err, data) => {
-    if (err) {
-      throw err;
-    } else {
-      const json = JSON.parse(data);
-      const note = json.find((item) => item.id === req.params.id);
-      if (!note)
-        return res.json(`Note with the ID ${req.params.id} doesn't exist`);
-      const newArray = json.filter((item) => item.id !== req.params.id);
-      fs.writeFile("./notes.json", JSON.stringify(newArray, 2, null), (err) => {
-        if (err) {
-          throw err;
-        }
-        res.json("Item deleted");
-      });
-    }
-  });
+const deleteNote = async (req, res) => {
+  const data = await fs.readFileSync("./notes.json");
+  try {
+    const json = JSON.parse(data);
+    const note = json.find((item) => item.id === req.params.id);
+    if (!note)
+      return res.json(`Note with the ID ${req.params.id} doesn't exist`);
+    const newArray = json.filter((item) => item.id !== req.params.id);
+    fs.writeFile("./notes.json", JSON.stringify(newArray, 2, null), (err) => {
+      if (err) {
+        throw err;
+      }
+      res.json("Item deleted");
+    });
+  } catch (error) {
+    console.error(error);
+  }
 };
 
 //Update note
 
-const updateNote = (req, res) => {
-  fs.readFile("./notes.json", (err, data) => {
-    if (err) {
-      throw err;
-    }
+const updateNote = async (req, res) => {
+  try {
+    const data = await fs.readFileSync("./notes.json");
     const json = JSON.parse(data);
     const newNote = json.find((item) => item.id === req.params.id);
     if (!newNote)
@@ -88,7 +79,9 @@ const updateNote = (req, res) => {
       }
       res.json(`Note with the id ${req.params.id} is successfuly updated`);
     });
-  });
+  } catch (error) {
+    console.error(error);
+  }
 };
 
 module.exports = { createNewNote, getAllNotes, deleteNote, updateNote };
