@@ -5,9 +5,9 @@ const { uuid } = require("uuidv4");
 
 const getAllNotes =
   ("/notes",
-  async (req, res) => {
+  (req, res) => {
     try {
-      const data = await fs.readFileSync("./notes.json");
+      const data = fs.readFileSync("./notes.json");
       const json = JSON.parse(data);
       res.json(json);
     } catch (error) {
@@ -19,22 +19,22 @@ const getAllNotes =
 
 const createNewNote =
   ("/notes",
-  async (req, res) => {
+  (req, res) => {
     const note = {
       id: uuid(),
       note: req.body.note,
     };
 
-    const data = await fs.readFileSync("./notes.json");
+    const data = fs.readFileSync("./notes.json");
     try {
       const json = JSON.parse(data);
       json.push(note);
-      fs.writeFile("./notes.json", JSON.stringify(json, null, 2), (err) => {
-        if (err) {
-          throw err;
-        }
-      });
-      res.json({ message: "Note added succesfully" });
+      fs.writeFileSync("./notes.json", JSON.stringify(json, null, 2));
+      try {
+        res.json({ message: "Note added succesfully" });
+      } catch (error) {
+        console.error(error);
+      }
     } catch (error) {
       console.error(error);
     }
@@ -42,20 +42,20 @@ const createNewNote =
 
 // Delete note
 
-const deleteNote = async (req, res) => {
-  const data = await fs.readFileSync("./notes.json");
+const deleteNote = (req, res) => {
+  const data = fs.readFileSync("./notes.json");
   try {
     const json = JSON.parse(data);
     const note = json.find((item) => item.id === req.params.id);
     if (!note)
       return res.json(`Note with the ID ${req.params.id} doesn't exist`);
     const newArray = json.filter((item) => item.id !== req.params.id);
-    fs.writeFile("./notes.json", JSON.stringify(newArray, 2, null), (err) => {
-      if (err) {
-        throw err;
-      }
-      res.json("Item deleted");
-    });
+    fs.writeFileSync("./notes.json", JSON.stringify(newArray, 2, null));
+    try {
+      res.json("Note deleted succesfully");
+    } catch (error) {
+      console.error(error);
+    }
   } catch (error) {
     console.error(error);
   }
@@ -63,9 +63,9 @@ const deleteNote = async (req, res) => {
 
 //Update note
 
-const updateNote = async (req, res) => {
+const updateNote = (req, res) => {
   try {
-    const data = await fs.readFileSync("./notes.json");
+    const data = fs.readFileSync("./notes.json");
     const json = JSON.parse(data);
     const newNote = json.find((item) => item.id === req.params.id);
     if (!newNote)
@@ -73,12 +73,12 @@ const updateNote = async (req, res) => {
     if (req.body.note) newNote.note = req.body.note;
     const Array = json.filter((item) => item.id !== req.params.id);
     const newArray = [...Array, newNote];
-    fs.writeFile("./notes.json", JSON.stringify(newArray), (err) => {
-      if (err) {
-        throw err;
-      }
+    fs.writeFileSync("./notes.json", JSON.stringify(newArray));
+    try {
       res.json(`Note with the id ${req.params.id} is successfuly updated`);
-    });
+    } catch (error) {
+      console.error(error);
+    }
   } catch (error) {
     console.error(error);
   }
